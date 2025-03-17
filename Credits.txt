@@ -1,0 +1,73 @@
+Hero Character and Enemy Sword Models:
+	- Creator: Bugrimov Maksim (fab.com)
+	- Asset Name: Fantasy Characters (Pack)
+	- Link: https://fab.com/s/69d817e07bd5
+	- License: https://www.fab.com/eula
+
+Axe Model:
+	- Creator: UluCinar (fab.com)
+	- Asset Name: Ancient Warrior Axe
+	- Link: https://fab.com/s/995b16371029
+	- License: https://www.fab.com/eula
+
+Enemy Character Model:
+	- Creator: Adobe / Mixamo (mixamo.com)
+	- Asset Name: Maynard
+	- Link: https://www.mixamo.com/#/?page=2&type=Character
+	- Legal Information: https://www.adobe.com/legal/terms.html
+
+Crosshair Texture:
+	- Creator: Dids (fab.com)
+	- Asset Name: 100+ Crosshairs Pack
+	- Link: https://fab.com/s/185d638ccca2
+	- License: https://www.fab.com/eula
+
+Hero Character Axe Throw Animation:
+	- Creator: Epic Games (fab.com)
+	- Asset Name: Paragon: Khaimera
+	- Link: https://fab.com/s/c8fdd20acd59
+	- License: https://www.fab.com/eula
+
+Footstep Sound Effects:
+	"Footsteps Mini Sound Pack" by Mechanics Mechanics, used under CC BY 4.0. 
+	Copyright © 2024 Mechanics Mechanics.No warranties are provided.
+	- Link: https://fab.com/s/6578641cc37c
+	- License: https://creativecommons.org/licenses/by/4.0/
+
+Hero Character Vocalizations:
+	- Creator: Gamemaster Audio (fab.com)
+	- Asset Name: Human Vocalizations
+	- Link: https://fab.com/s/60cef0b54241
+	- License: https://www.fab.com/eula
+
+Enemy Character Vocalizations:
+	- Creator: IndieGameModels (fab.com)
+	- Asset Names: Small Monster SFX 1, Medium Monster SFX 1
+	- Link: https://fab.com/s/e1477012f972
+	- License: https://www.fab.com/eula
+
+Environment:
+	- Creator: Patrick (fab.com)
+	- Asset Name: Winter Forest Set
+	- Link: https://fab.com/s/695e359a6f14
+	- License: https://www.fab.com/eula
+
+Axe Spin Sound Effect:
+	- Creator: Jochi Sound (bandcamp.com)
+	- Asset Name: Spinning
+	- Link: https://jochi.bandcamp.com/album/free-youtube-sfx-pack
+	- License: https://jochi.bandcamp.com/album/free-youtube-sfx-pack
+
+Axe Impact and Sword Swings Sound Effects:
+	- Creator: Mr Vibe SFX (youtube.com)
+	- Link: https://www.youtube.com/watch?v=oArto-j34es&list=PL8PrQN9J8Kv7o99bt7-FrZhMi3_zaa0pS
+
+Ambient Sound:
+	- Creator: Stephen Ulibarri (github.com)
+	- Asset Name: Ambient
+	- Link: https://github.com/DruidMech/UE4-CPP-Shooter-Series/tree/master/Assets/Sounds
+
+Game Engine:
+	- Creator: Epic Games
+	- Engine: Unreal Engine 5.4.4
+	- Link: https://www.unrealengine.com/en-US

@@ -215,8 +215,6 @@ bool AEnemyCharacter::OnHit(const FHitResult& HitResult, AActor* Causer, EAxeHit
 
 void AEnemyCharacter::Freeze()
 {
-	GetMesh()->SetScalarParameterValueOnMaterials(m_FreezeTimeMaterialParameterName, GetWorld()->TimeSeconds);
-
 	const FName CurrentSectionName{ GetMesh()->GetAnimInstance()->Montage_GetCurrentSection() };
 	const int32 CurrentSectionIdx{ m_HitReactMontageInfo.m_Montage->GetSectionIndex(CurrentSectionName) };
 	const float FreezeDelayTime{ m_HitReactMontageInfo.m_Montage->GetSectionLength(CurrentSectionIdx) * 0.5f };
@@ -229,8 +227,9 @@ void AEnemyCharacter::Freeze()
 			/*Set the timer that unfreezes the enemy for m_FreezeMaxDuration seconds.*/
 			GetWorldTimerManager().SetTimer(m_FreezeTimer, this, &AEnemyCharacter::Unfreeze, m_FreezeMaxDuration, false);
 		}
-	
 	}, FreezeDelayTime, false);
+
+	GetMesh()->SetScalarParameterValueOnMaterials(m_FreezeTimeMaterialParameterName, GetWorld()->TimeSeconds);
 
 	if (m_EnemyState != EEnemyState::EES_Stunned)
 	{
@@ -489,7 +488,7 @@ void AEnemyCharacter::GetKnockedBack(const FVector& HitDirection)
 	{
 		HitReactSectionName = m_HitReactMontageInfo.m_BackSectionName;
 	}
-	else if (HitDirectionProjEnemyFwd <= -Cos45Degrees)
+	else if (HitDirectionProjEnemyFwd <= -Cos45Degrees) // 45 degrees from the back vector, so not it's not -45 degrees. It's the negation of cosine of 45 degrees. 
 	{
 		HitReactSectionName = m_HitReactMontageInfo.m_FrontSectionName;
 	}

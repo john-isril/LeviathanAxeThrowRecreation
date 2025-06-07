@@ -32,11 +32,11 @@ public:
 		EAS_PostLaunch,
 		/** State for when it is flying to a specific target and is flying without assistance from the projectile movement component. */
 		EAS_FlyingToTarget,
-
+		
 		EAS_Max,
 	};
 
-	/*
+	/* 
 	* The axe can be requested to perform certain actions when it impacts with something.
 	* However, What actually happens on impact can be different from what was requested.
 	*/
@@ -50,18 +50,18 @@ public:
 	ALeviathanAxe();
 
 	virtual void PostInitializeComponents() override;
-
+	
 	virtual void Tick(float DeltaTime) override;
-
+	
 	void SetRotationRate(const FRotator& RotationRate);
-
+	
 	/*Launches the axe according to the Velocity parameter. m_ProjectileMovement will be responsible for moving the axe in this scenario until it has collided with something. HitTypeRequest will be used to influence the action taken on impact.*/
 	void Launch(const FVector& Velocity, EHitTypeRequest HitTypeRequest);
-
+	
 	/*Initiates the axe to fly to a target (In this game it is the Hero's right hand for axe recalling, but can also have a different target if needed).*/
 	UFUNCTION()
 	void FlyToTarget(const FQuat& TargetRotation, const FVector& TargetLocation, float MinSpeed, float FlightMaxDuration);
-
+	
 	/*This should be called every frame from a moving target. In this game, the moving target is the Hero's right hand socket.*/
 	void UpdateTargetRotationAndLocation(const FQuat& TargetRotation, const FVector& TargetLocation);
 
@@ -76,11 +76,11 @@ private:
 	struct FFlightInfo
 	{
 		FQuat m_InitialRotation{};
-
+		
 		FQuat m_TargetRotation{};
-
+		
 		FVector m_TargetLocation{};
-
+		
 		/*Timer used to calculate the alpha value between the initial location and the target location.*/
 		FTimerHandle m_FlightTimer{};
 
@@ -127,7 +127,7 @@ private:
 	float m_GravityTriggerDistance{ 750.0 };
 
 	/* The length when performing a line trace to search for a pinnable wall*/
-	UPROPERTY(EditAnywhere, Category = "Properties", meta = (DisplayName = "Pinnable Wall Search Distance"))
+	UPROPERTY(EditAnywhere, Category = "Properties", meta = (DisplayName = "Pinned Wall Search Distance"))
 	float m_PinnableWallSearchDistance{ 700.0f };
 
 	UPROPERTY(EditAnywhere, Category = "Sound", meta = (DisplayName = "Sound Attenuation"))
@@ -150,32 +150,32 @@ private:
 	FRotator m_PreShakeMeshRelativeRotation{};
 
 	FHitResult m_HitResult{};
-
+	
 	FCollisionQueryParams m_CollisionQueryParams{};
 
 	EHitTypeRequest m_HitTypeRequest{};
 
 	/** The location of the axe before flight or before it's launched with the projectile movement component*/
 	FVector m_InitialLocation{};
-
+	
 	FVector m_LocationLastFrame{};
 
 	FFlightInfo m_FlightInfo{};
-
+	
 	FTimerHandle m_ShakeTimer{};
 
 	float m_GravityTriggerDistanceSquared{};
 
 	bool m_bIsShaking{ false };
-
+	
 	bool m_bMaintainConstantVelocity{ false };
 
 	EAxeState m_State{ EAxeState::EAS_Idle };
 
 private:
-
+	
 	bool CheckForCollision();
-
+	
 	void HandleCollision();
 
 	/*Called when the axe hits an actor that is derived from IAxeDamageableInterface. AxeDamageableActor is the hit IAxeDamageableInterface. PreImpactVelocity is the velocity right before collision.*/
@@ -183,45 +183,45 @@ private:
 
 	/*Function called in Tick if the axe is in the IdleAfterImpact state.*/
 	void IdleAfterImpactTick();
-
+	
 	/*Function called in Tick if the axe is in the PostLaunch state.*/
 	void PostLaunchTick();
-
+	
 	/*
 	* Rocochets off the hit object by moving at a velocity that is the previous velocity rotated by a certain degree offset.
 	* The velocity before the hit, PreImpactVelocity, will help us find this new velocity.
 	* The new velocity is also scaled down from the previous velocity.
 	*/
 	void RicochetOffHitObject(const FVector& PreImpactVelocity);
-
+	
 	/*
 	* Attaches the axe to the object it has hit.
 	* If the object is a skeletal mesh component, socket manipulation will be done to correctly attach the axe to the skeletons hit location.
 	* Searches for the socket closest to the impact point then attaches to the socket.
 	*/
 	void AttachToAxeDamageableActor(IAxeDamageableInterface* AxeDamageableActor);
-
+	
 	/*Initializes the axe to begin carrying the object it has it.*/
 	void CarryHitActor(const FVector& PreImpactVelocity);
 
 	/*Function called in Tick if the axe is in the FlyingToTarget state.*/
 	void FlyToTargetTick();
-
+	
 	/*Interpolates the axe's rotation to it's target rotation.*/
 	void InterpToTargetRotation();
-
+	
 	/*
 	* Interpolates the axe's location to it's target location along a curved path.
 	* Gives the illusion that it's flying to it's target along a curved path.
 	*/
 	void InterpToTargetLocation();
-
+	
 	/*
 	* Responsible for initiating the axe to interpolate to the target rotation.
 	* Called after the m_InterpToRotationDelayTimer has completed.
 	*/
 	void StartInterpToTargetRotation();
-
+	
 	/*
 	* Called once the m_FlightInfo.m_FlightTimer timer has completed.
 	* Changes it's state and notifies all subscribers of the OnFlightCompleted delegate.
@@ -235,6 +235,6 @@ private:
 	void OnActorFreezeCompleted();
 
 	void DeactivateInAirComponents();
-
+	
 	void PlayAudioComponent(USoundBase* Sound = nullptr);
 };

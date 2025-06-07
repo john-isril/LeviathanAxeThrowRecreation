@@ -20,7 +20,7 @@ ALeviathanAxe::ALeviathanAxe()
 
 	m_AxeMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Axe Mesh"));
 	SetRootComponent(m_AxeMesh);
-
+	
 	m_AxeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	m_AxeMesh->SetGenerateOverlapEvents(false);
 
@@ -47,7 +47,7 @@ void ALeviathanAxe::PostInitializeComponents()
 	Super::PostInitializeComponents();
 
 	m_AxeMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+	
 	// A user parameter must be created and bound to the emitters "Ribbon Width" property in the Niagara particle system. Name it TrailHeight.
 	if (m_TrailEffect)
 	{
@@ -103,11 +103,11 @@ void ALeviathanAxe::SetRotationRate(const FRotator& RotationRate)
 void ALeviathanAxe::Launch(const FVector& Velocity, EHitTypeRequest HitTypeRequest)
 {
 	PlayAudioComponent(m_AxeSpinSound);
-
+	
 	m_HitTypeRequest = HitTypeRequest;
 
 	m_bMaintainConstantVelocity = false;
-
+	
 	m_RotatingMovementComponent->Activate();
 
 	m_ProjectileMovementComponent->Velocity = Velocity;
@@ -144,7 +144,17 @@ void ALeviathanAxe::FlyToTarget(const FQuat& TargetRotation, const FVector& Targ
 		/*Start shaking the axe if it's not already shaking and if it's not carrying an actor.*/
 		else if (!m_bIsShaking && m_CarriedActor.IsExplicitlyNull())
 		{
+			m_State = EAS_IdleAfterImpact;
+			m_bIsShaking = true;
+			m_PreShakeMeshRelativeRotation = m_AxeMesh->GetRelativeRotation();
+			FTimerDelegate Delegate;
+			/*Return back to this function after the axe is done shaking then it'll execute the rest of this function.*/
+			Delegate.BindUFunction(this, "FlyToTarget", TargetRotation, TargetLocation, MinSpeed, FlightMaxDuration);
+			
+			static constexpr float ShakeDuration{ 0.3f };
+			GetWorldTimerManager().SetTimer(m_ShakeTimer, Delegate, ShakeDuration, false);
 
+			return;
 		}
 
 		DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -252,7 +262,7 @@ void ALeviathanAxe::HandleCollision()
 		DeactivateInAirComponents();
 
 		/*If the axe is carrying an object, we need to store the objects location before it's modified by the axes transform changes.*/
-		const FVector DraggedObjectPreImpactLocation{ m_CarriedActor.IsValid() ? m_CarriedActor->GetActorLocation() : FVector{} };
+		const FVector DraggedObjectPreImpactLocation{ m_CarriedActor.IsValid() ? m_CarriedActor->GetActorLocation() : FVector{}};
 
 		/*Set new rotation.*/
 		{
@@ -277,7 +287,7 @@ void ALeviathanAxe::HandleCollision()
 			const FVector Y{ (FVector::UpVector).Cross(m_HitResult.ImpactNormal) };
 			const FRotator ImpactRotation{ FRotationMatrix::MakeFromXY(m_HitResult.ImpactNormal, Y).Rotator() };
 			m_CarriedActor->SetActorRotation(ImpactRotation);
-
+			
 			/*Create an offset so the hit object isn't placed inside the pinned wall.*/
 			m_CarriedActor->SetActorLocation(DraggedObjectPreImpactLocation);
 			FVector LocationToImpactLocation{ DraggedObjectPreImpactLocation - m_HitResult.ImpactPoint };
@@ -288,9 +298,9 @@ void ALeviathanAxe::HandleCollision()
 			const FVector LocationToImpactSocket{ m_AxeMesh->GetSocketLocation(m_ImpactSocketName) - m_CarriedActor->GetActorLocation() };
 			const double LocationToImpactSocketProjObjectRight{ FVector::DotProduct(LocationToImpactSocket, m_CarriedActor->GetActorRightVector()) };
 			Offset += LocationToImpactSocketProjObjectRight * m_CarriedActor->GetActorRightVector();
-
+			
 			m_CarriedActor->AddActorWorldOffset(Offset);
-
+			
 			OnHit.ExecuteIfBound(m_CarriedActor.Get(), true);
 
 			if (IAxeDamageableInterface * CarriedAxeDamageableActor{ Cast<IAxeDamageableInterface>(m_CarriedActor.Get()) })
@@ -326,7 +336,7 @@ void ALeviathanAxe::HandleAxeDamageableCollision(IAxeDamageableInterface* AxeDam
 	{
 		FHitResult PinnableWallHitResult{};
 		const FVector TraceStart{ GetActorLocation() };
-		const FVector TraceEnd{ TraceStart + PreImpactVelocity.GetSafeNormal() * 10000.0f };
+		const FVector TraceEnd{ TraceStart + PreImpactVelocity.GetSafeNormal() * m_PinnableWallSearchDistance };
 
 		GetWorld()->LineTraceSingleByChannel(PinnableWallHitResult, TraceStart, TraceEnd, ECC_Visibility, m_CollisionQueryParams);
 
@@ -342,10 +352,10 @@ void ALeviathanAxe::HandleAxeDamageableCollision(IAxeDamageableInterface* AxeDam
 	{
 	case ALeviathanAxe::EHTR_KnockBack:
 		bLethalHit = !AxeDamageableActor->OnHit(m_HitResult, GetInstigator(), EAxeHitType::EAHT_KnockBack);
-
+		
 		/*Go through the hit actor if it was killed or if the axe is flying.*/
 		if (bLethalHit || (m_State == EAxeState::EAS_FlyingToTarget)) return;
-
+		
 		RicochetOffHitObject(PreImpactVelocity);
 		break;
 
@@ -359,7 +369,7 @@ void ALeviathanAxe::HandleAxeDamageableCollision(IAxeDamageableInterface* AxeDam
 		else
 		{
 			bLethalHit = !AxeDamageableActor->OnHit(m_HitResult, GetInstigator(), EAxeHitType::EAHT_AttachToAndFreeze);
-
+			
 			if (bLethalHit) return;
 
 			AttachToAxeDamageableActor(AxeDamageableActor);
@@ -378,6 +388,7 @@ void ALeviathanAxe::IdleAfterImpactTick()
 	if (ensureAlwaysMsgf(m_PreFlightShakeCurve, TEXT("Pre-Flight Shake Curve is not set")) && m_bIsShaking)
 	{
 		const float ShakeRollOffset{ m_PreFlightShakeCurve->GetFloatValue(GetWorldTimerManager().GetTimerElapsed(m_ShakeTimer)) };
+		UE_LOG(LogTemp, Warning, TEXT("%f"), ShakeRollOffset);
 		m_AxeMesh->SetRelativeRotation(m_PreShakeMeshRelativeRotation + FRotator{ 0.0, 0.0, ShakeRollOffset });
 	}
 }
@@ -385,7 +396,7 @@ void ALeviathanAxe::IdleAfterImpactTick()
 void ALeviathanAxe::PostLaunchTick()
 {
 	const FVector CurrentLocation{ GetActorLocation() };
-
+	
 	if (CheckForCollision())
 	{
 		HandleCollision();
@@ -438,15 +449,15 @@ void ALeviathanAxe::AttachToAxeDamageableActor(IAxeDamageableInterface* AxeDamag
 
 		if (USkeletalMeshComponent* const HitSkeletalMeshComponent{ AxeDamageableActor->GetSkeletalMeshComponent() })
 		{
-			const TArray<USkeletalMeshSocket*> Sockets{ HitSkeletalMeshComponent->GetSkinnedAsset()->GetActiveSocketList() };
-
+			const TArray<USkeletalMeshSocket*> Sockets{ HitSkeletalMeshComponent->GetSkinnedAsset()->GetActiveSocketList()};
+			
 			const USkeletalMeshSocket* TargetSocket{ nullptr };
 			double MinDistanceSquared{ DOUBLE_BIG_NUMBER };
-
+			
 			for (int32 Idx{ 0 }; Idx < Sockets.Num(); ++Idx)
 			{
-				const double CurrentDistanceSquared{ FVector::DistSquared(m_HitResult.ImpactPoint, Sockets[Idx]->GetSocketLocation(HitSkeletalMeshComponent)) };
-
+				const double CurrentDistanceSquared{ FVector::DistSquared(m_HitResult.ImpactPoint, Sockets[Idx]->GetSocketLocation(HitSkeletalMeshComponent))};
+			
 				if (CurrentDistanceSquared < MinDistanceSquared)
 				{
 					TargetSocket = Sockets[Idx];
@@ -512,7 +523,7 @@ void ALeviathanAxe::CarryHitActor(const FVector& PreImpactVelocity)
 		m_CarriedActor->AddActorLocalRotation(FRotator{ 0.0, 180.0, 0.0 });
 	}
 
-	/*We need to move the carried objects location more towards the impact socket to make it look like the axe
+	/*We need to move the carried objects location more towards the impact socket to make it look like the axe 
 	 *hit the mesh rather than the invisible root component (like a capsule component).
 	*/
 	{
@@ -582,7 +593,7 @@ void ALeviathanAxe::StartInterpToTargetRotation()
 		m_FlightInfo.m_InitialRotation = GetActorQuat();
 		m_FlightInfo.m_bInterpingToTargetRotation = true;
 		m_FlightInfo.m_InterpToTargetRotationDuration = GetWorldTimerManager().GetTimerRemaining(m_FlightInfo.m_FlightTimer);
-
+		
 		GetWorldTimerManager().SetTimer(m_FlightInfo.m_InterpToRotTimer, m_FlightInfo.m_InterpToTargetRotationDuration, false);
 	}
 }

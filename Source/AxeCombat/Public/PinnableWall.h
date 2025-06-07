@@ -7,7 +7,7 @@
 #include "PinnableWall.generated.h"
 
 /*
-* Class for objects that enemies can be pinned against by the Leviathan Axe.
+* Class for objects that enemies can be pinned against with the Leviathan Axe.
 */
 UCLASS()
 class AXECOMBAT_API APinnableWall : public AActor

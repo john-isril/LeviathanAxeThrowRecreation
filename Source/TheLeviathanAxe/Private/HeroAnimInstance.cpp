@@ -67,11 +67,12 @@ void UHeroAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	
 	m_GroundSpeedSquared = HeroVelocity.SizeSquared2D();
 
-	// Strafing calculations.
+	// Strafing calculations
 	{
 		const FRotator MovementRotation{ UKismetMathLibrary::MakeRotFromX(HeroVelocity) };
 		const FRotator DeltaRotation{ UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation) };
-		
+		// Used to smoothly interp the rotation, preventing the jump from -180 to 180 and vice-versa for the yaw.
+		// Ensure the interpolation/smoothing time in the blendspace is set to 0 (should be 0 by default).
 		m_StrafeDeltaRotation = FMath::RInterpTo(m_StrafeDeltaRotation, DeltaRotation, DeltaSeconds, s_DeltaRotationInterpSpeed);
 		m_StrafeYawOffset = m_StrafeDeltaRotation.Yaw;
 	}

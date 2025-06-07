@@ -191,33 +191,33 @@ void UAxeCombatComponent::OnAxeThrowNotified(bool bIsHeavy)
 
 	if (!bIsHeavy)
 	{
-		m_LeviathanAxe->AddActorLocalRotation(FRotator{ 0.0, 0.0, 75.0 }); /* Offset for light throws. */
+		m_LeviathanAxe->AddActorLocalRotation(FRotator{ 0.0, 0.0, 75.0 }); // The axe gets thrown at an angle on light throws.
 	}
 
 	/* Get the crosshairs position and direction in world space (this method allows the crosshairs to be placed anywhere in the viewport). */
 	FVector CrosshairsWorldPosition{};
 	FVector CrosshairsWorldDirection{};
-	UGameplayStatics::DeprojectScreenToWorld(GetWorld()->GetFirstPlayerController(), m_HeroHUD->GetCrosshairsScreenPosition(), CrosshairsWorldPosition, CrosshairsWorldDirection);
+	UGameplayStatics::DeprojectScreenToWorld(Cast<APlayerController>(m_HeroOwner->GetController()), m_HeroHUD->GetCrosshairsScreenPosition(), CrosshairsWorldPosition, CrosshairsWorldDirection);
 
-	/* We want the launch location to be in across from the crosshairs but on the right side of the character. */
+	/* We want the axe's location to be in front of the crosshairs but at a distance away.
+	* The distance the axe is away from the camera should be the same as it was previously.
+	*/
 	const FVector CrosshairsToAxe{ m_LeviathanAxe->GetActorLocation() - CrosshairsWorldPosition };
 	const double CrosshairsToAxeProjCrosshairsDirection{ CrosshairsToAxe.Dot(CrosshairsWorldDirection) };
 	const FVector TargetAxeLaunchLocation{ CrosshairsWorldPosition + CrosshairsWorldDirection * CrosshairsToAxeProjCrosshairsDirection };
 	m_LeviathanAxe->SetActorLocation(TargetAxeLaunchLocation);
+
+	FVector Velocity{ CrosshairsWorldDirection };
+	Velocity *= bIsHeavy ? m_HeavyAxeThrowSpeed : m_LightAxeThrowSpeed;
+
+	m_LeviathanAxe->SetRotationRate(m_AxeThrowRotationRate);
 
 	m_DamageToApply = bIsHeavy ? m_HeavyDamageAmount : m_LightDamageAmount;
 
 	/*Request for the axe to perform a specific type of action when it hits an enemy*/
 	ALeviathanAxe::EHitTypeRequest ImpactActionRequest{ bIsHeavy ? ALeviathanAxe::EHTR_AttachAndFreeze : ALeviathanAxe::EHTR_KnockBack };
 
-	FVector Velocity{ CrosshairsWorldDirection };
-	Velocity *= bIsHeavy ? m_HeavyAxeThrowSpeed : m_LightAxeThrowSpeed;
-
 	m_LeviathanAxe->Launch(Velocity, ImpactActionRequest);
-
-	m_LeviathanAxe->SetRotationRate(m_AxeThrowRotationRate);
-
-	/*m_LeviathanAxe->Launch(Velocity, ImpactActionRequest);*/
 
 	OnAxeThrown.ExecuteIfBound();
 }

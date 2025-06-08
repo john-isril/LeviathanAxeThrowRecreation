@@ -388,7 +388,6 @@ void ALeviathanAxe::IdleAfterImpactTick()
 	if (ensureAlwaysMsgf(m_PreFlightShakeCurve, TEXT("Pre-Flight Shake Curve is not set")) && m_bIsShaking)
 	{
 		const float ShakeRollOffset{ m_PreFlightShakeCurve->GetFloatValue(GetWorldTimerManager().GetTimerElapsed(m_ShakeTimer)) };
-		UE_LOG(LogTemp, Warning, TEXT("%f"), ShakeRollOffset);
 		m_AxeMesh->SetRelativeRotation(m_PreShakeMeshRelativeRotation + FRotator{ 0.0, 0.0, ShakeRollOffset });
 	}
 }
